@@ -1,36 +1,61 @@
+
+import os
 import math
 import numpy as np
 import cv2
 
 from fill import fill_polygon, fill_circle
+from line import line
 
-width = 740
-height = 580
+os.makedirs("out", exist_ok=True)
 
-img = np.full((height, width, 3), 255, dtype=np.uint8)
+WIDTH, HEIGHT = 500, 400
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (220, 120, 40)
+RED = (40, 40, 220)
 
-left, top = 170, 140
-right, bottom = 570, 440
-radius = 65
+img = np.full((HEIGHT, WIDTH, 3), WHITE, dtype=np.uint8)
+
+# Створюємо правильний шестикутник.
+cx, cy = 180, 190
+radius = 100
+
 points = []
 
-corners = [
-    (right - radius, top + radius, -90),
-    (right - radius, bottom - radius, 0),
-    (left + radius, bottom - radius, 90),
-    (left + radius, top + radius, 180),
-]
+for i in range(6):
+    angle = math.radians(-90 + i * 60)
+    x = round(cx + radius * math.cos(angle))
+    y = round(cy + radius * math.sin(angle))
+    points.append((x, y))
 
-for cx, cy, start_angle in corners:
-    for step in range(19):
-        angle = math.radians(start_angle + step * 5)
-        x = round(cx + radius * math.cos(angle))
-        y = round(cy + radius * math.sin(angle))
-        points.append((x, y))
+# Заливаємо шестикутник власною функцією.
+fill_polygon(img, points, BLUE)
 
-fill_polygon(img, points, (220, 130, 50))
+# Малюємо контур власною функцією line.
+for i in range(len(points)):
+    x1, y1 = points[i]
+    x2, y2 = points[(i + 1) % len(points)]
+    line(img, x1, y1, x2, y2, BLACK)
 
-fill_circle(img, 370, 290, 35, (50, 160, 70))
+# Додатково демонструємо заливку круга.
+fill_circle(img, 180, 190, 65, RED)
 
-cv2.imwrite("out/task8.png", img)
-print("Зображення збережено: out/task08.png")
+# Контур круга для наочності.
+for angle in range(360):
+    a1 = math.radians(angle)
+    a2 = math.radians(angle + 1)
+
+    x1 = round(180 + 65 * math.cos(a1))
+    y1 = round(190 + 65 * math.sin(a1))
+
+    x2 = round(180 + 65 * math.cos(a2))
+    y2 = round(190 + 65 * math.sin(a2))
+
+    line(img, x1, y1, x2, y2, BLACK)
+
+output_path = "out/task08.png"
+cv2.imwrite(output_path, img)
+
+print("Вершини шестикутника:", points)
+print("Зображення збережено:", output_path)
