@@ -53,3 +53,58 @@ def fill_circle(img, cx, cy, r, color):
 
             if dx * dx + dy * dy <= (2 * r) ** 2:
                 img[y, x] = color
+                
+def flood_fill(img, x, y, color, connectivity=4):
+
+    if connectivity not in (4, 8):
+        raise ValueError("connectivity повинен бути 4 або 8")
+
+    height, width = img.shape[:2]
+
+    # Перевіряємо, чи початкова точка всередині зображення.
+    if not (0 <= x < width and 0 <= y < height):
+        return 0
+
+    old_color = img[y, x].copy()
+
+    # Якщо колір не змінюється, заливати нічого не потрібно.
+    if (old_color == color).all():
+        return 0
+
+    if connectivity == 4:
+        neighbors = [
+            (-1, 0),  # ліворуч
+            (1, 0),   # праворуч
+            (0, -1),  # вгору
+            (0, 1)    # вниз
+        ]
+    else:
+        neighbors = [
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        ]
+
+    stack = [(x, y)]
+    filled = 0
+
+    # Замінюємо колір одразу, щоб не додавати цей піксель
+    # у стек повторно.
+    img[y, x] = color
+
+    while stack:
+        px, py = stack.pop()
+        filled += 1
+
+        for dx, dy in neighbors:
+            nx = px + dx
+            ny = py + dy
+
+            if not (0 <= nx < width and 0 <= ny < height):
+                continue
+
+            # Заливаємо лише пікселі початкового кольору.
+            if (img[ny, nx] == old_color).all():
+                img[ny, nx] = color
+                stack.append((nx, ny))
+
+    return filled
